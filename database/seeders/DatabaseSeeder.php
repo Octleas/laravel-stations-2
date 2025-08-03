@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Practice;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -11,10 +12,9 @@ class DatabaseSeeder extends Seeder
      *
      * @return void
      */
-    public function run()
+
+    public function run(): void
     {
-        $this->call([
-            // ここに Seeder を追加する
-        ]);
+        $this->call(MovieSeeder::class);
     }
 }
