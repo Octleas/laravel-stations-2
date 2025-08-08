@@ -31,6 +31,8 @@
                         <th>概要</th>
                         <th>登録日時</th>
                         <th>更新日時</th>
+                        <th></th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -43,6 +45,17 @@
                         <td>{{ $movie->description }}</td>
                         <td>{{ $movie->created_at }}</td>
                         <td>{{ $movie->updated_at }}</td>
+                        <th>
+                            <button class="btn-edit"
+                                onclick="location.href='{{ route('admin.movies.edit', $movie->id) }}'">
+                                編集
+                            </button>
+                        </th>
+                        <th>
+                            <button class="btn-rmv">
+                                削除
+                            </button>
+                        </th>
                     </tr>
                     @endforeach
                 </tbody>

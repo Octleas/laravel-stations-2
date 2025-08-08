@@ -8,3 +8,5 @@ Route::get('/movies', [PracticeController::class, 'movies']);
 Route::get('/admin/movies', [PracticeController::class, 'admin'])->name('admin.movies'); // 管理者用のルート
 Route::get('/admin/movies/create', [PracticeController::class, 'create'])->name('admin.movies.create'); //映画登録フォームのルート
 Route::post('/admin/movies/store', [PracticeController::class, 'store'])->name('admin.movies.store'); // 映画の作成用ルート
+Route::get('/admin/movies/{id}/edit', [PracticeController::class, 'edit'])->name('admin.movies.edit'); //映画編集フォームのルート
+Route::match(['put', 'patch'], '/admin/movies/{id}/update', [PracticeController::class, 'update'])->name('admin.movies.update');

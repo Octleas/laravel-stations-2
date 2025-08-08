@@ -1,5 +1,5 @@
 /* 全体のフォームのレイアウト */
-form {
+.container {
     max-width: 600px;
     margin: 30px auto;
     padding: 20px;
@@ -66,4 +66,44 @@ textarea {
     padding: 8px;
     margin-bottom: 5px;
     border-radius: 4px;
+}
+
+/* .containerはすでに指定されているので省略 */
+
+.button-group {
+    display: flex;
+    justify-content: space-between; /* 左右に要素を配置 */
+    align-items: center; /* 高さを揃える */
+    margin-top: 20px;
+    gap: 10px; /* ボタン間の隙間 */
+    width: 100%; /* 横幅いっぱいに */
+}
+
+/* ボタンに共通の基本スタイル */
+.button-group button {
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+}
+
+/* 更新ボタン（左側） */
+.btn-update {
+    background-color: #4caf50;
+    color: white;
+}
+
+.btn-update:hover {
+    background-color: #45a049;
+}
+
+/* 一覧へボタン（右側） */
+.btn-list {
+    background-color: #2196f3;
+    color: white;
+}
+
+.btn-list:hover {
+    background-color: #1976d2;
 }
