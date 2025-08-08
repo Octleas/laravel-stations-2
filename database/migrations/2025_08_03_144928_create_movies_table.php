@@ -13,7 +13,7 @@ return new class extends Migration
             $table->text('title')->comment('映画のタイトル');
             $table->text('image_url')->comment('画像URL');
             $table->integer('published_year')->comment('公開年');
-            $table->tinyinteger('is_showing')->default(false)->comment('上映中かどうか');
+            $table->tinyInteger('is_showing')->default(false)->comment('上映中かどうか');
             $table->text('description')->nullable()->comment('概要');
             $table->timestamps();
         });
