@@ -63,3 +63,87 @@
 .movie-card:hover {
     background-color: #f4f4f4;
 }
+
+.admin-action {
+    margin-bottom: 20px;
+    text-align: right;
+}
+
+.btn-admin {
+    padding: 10px 20px;
+    background-color: #2196f3;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+/* 検索欄全体のスタイル */
+.search-container {
+    display: flex; /* 要素を横並びにする */
+    align-items: center; /* 要素を垂直方向中央に揃える */
+    font-family: system-ui, -apple-system, sans-serif;
+    border: 2px solid #e0e0e0;
+    border-radius: 50px; /* 角を丸めてカプセル型に */
+    padding: 6px 10px;
+    background-color: #ffffff;
+    transition: border-color 0.2s, box-shadow 0.2s; /* アニメーションを滑らかに */
+}
+
+/* フォーカスが当たった時にコンテナ全体をハイライト */
+.search-container:focus-within {
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);
+}
+
+/* コンテナ内の全要素のデフォルトスタイルをリセット */
+.search-container > * {
+    border: none;
+    outline: none;
+    background-color: transparent;
+    font-size: 16px;
+    padding: 8px;
+}
+
+/* "Keyword: " のラベル */
+.search-container label {
+    font-weight: 600;
+    color: #555;
+    padding-left: 8px;
+    padding-right: 0;
+}
+
+/* 検索キーワードの入力欄 */
+.search-container input[type="search"] {
+    flex-grow: 1; /* 空きスペースを全て埋める */
+    width: 100%; /* 横幅を一杯に広げる */
+    color: #333;
+}
+/* placeholderの文字色を薄くする */
+.search-container input[type="search"]::placeholder {
+    color: #999;
+}
+
+/* セレクトボックスのスタイル */
+.search-container select {
+    color: #333;
+    cursor: pointer;
+}
+
+/* 検索ボタン */
+.search-container button {
+    background-color: #007bff;
+    color: white;
+    border-radius: 30px; /* ボタンも角を丸める */
+    padding: 8px 20px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.2s; /* ホバー時のアニメーション */
+    margin-left: 8px; /* 左側に少し余白 */
+}
+
+/* ボタンにカーソルが乗った時のスタイル */
+.search-container button:hover {
+    background-color: #0056b3;
+}

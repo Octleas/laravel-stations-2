@@ -12,12 +12,27 @@
 <body>
     <div class="admin-container">
 
-        <!-- 登録ボタン -->
         <div class="admin-actions">
             <button class="btn-create" onclick="location.href='{{ route('admin.movies.create') }}'">
                 映画を登録する
             </button>
         </div>
+
+        @if(session('success'))
+        <div>
+            {{ session('success') }}
+        </div>
+        @endif
+
+        @if ($errors->any())
+        <div>
+            <ul>
+                @foreach ($errors->all() as $error)
+                <div>{{ $error }}</div>
+                @endforeach
+            </ul>
+        </div>
+        @endif
 
         <!-- 映画一覧 -->
         <div class="movie-list">
@@ -52,9 +67,12 @@
                             </button>
                         </th>
                         <th>
-                            <button class="btn-rmv">
-                                削除
-                            </button>
+                            <form action="{{ route('admin.movies.destroy', $movie->id) }}" method="POST"
+                                style="display:inline;">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn-rmv">削除</button>
+                            </form>
                         </th>
                     </tr>
                     @endforeach

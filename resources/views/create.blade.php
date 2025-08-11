@@ -21,7 +21,6 @@
     @endif
     <div class="container">
         <form action="{{ route('admin.movies.store') }}" method="POST">
-            <!-- action="store"で admin/movies/create から admin/movies/store に飛び、データベースへ保存の処理 -->
             @csrf
             <div class="form-title">
                 <label for="title">映画のタイトル</lavel>

@@ -96,4 +96,25 @@ class PracticeController extends Controller
         }        
     }
 
+    public function destroy($id)
+    {
+        $movie = Movie::findOrFail($id);
+        try {
+    
+            $title = $movie->title;
+            $movie->delete();
+    
+            return redirect()
+                ->route('admin.movies')
+                ->with('success', "映画を削除しました → {$title}");
+    
+            } catch (\Throwable $e) {
+                \Log::error("映画の削除中にエラーが発生しました: " . $e->getMessage());
+                return redirect()
+                    ->back()
+                    ->with('error', '映画の削除中に予期せぬエラーが発生しました。')
+                    ->withInput();
+            }
+    }
+    
 }
