@@ -42,6 +42,7 @@
                         <th>タイトル</th>
                         <th>画像</th>
                         <th>公開年</th>
+                        <th>ジャンル</th>
                         <th>上映ステータス</th>
                         <th>概要</th>
                         <th>登録日時</th>
@@ -56,6 +57,7 @@
                         <td>{{ $movie->title }}</td>
                         <td><img src="{{ $movie->image_url }}" alt="{{ $movie->title}}" class="movie-image"></td>
                         <td>{{ $movie->published_year }}</td>
+                        <td>{{ optional($movie->genre)->name }}</td>
                         <td>{{ $movie->is_showing ? '上映中' : '上映予定' }}</td>
                         <td>{{ $movie->description }}</td>
                         <td>{{ $movie->created_at }}</td>

@@ -37,6 +37,10 @@
                 <input type="text" id="published_year" name="published_year"
                     value="{{ old('published_year', $movie->published_year) }}" />
             </div>
+            <div class="form-published_year">
+                <label for="genre">ジャンル</lavel>
+                    <input type="text" id="genre" name="genre" value="{{old('genre', $movie->genre->name)}}" />
+            </div>
             <div class="form-description">
                 <label for="description">概要</label>
                 <textarea id="description" name="description" cols="50"

@@ -19,14 +19,23 @@
         <h1 class="page-title">映画一覧</h1>
 
         <div>
-            <div class="search-container">
-                <input type="search" id="keyword" name="q" placeholder="映画のタイトルを入力..." />
-                <select name="status" id="status-select">
-                    <option value="1"> 上映中 </option>
-                    <option value="2"> 上映予定 </option>
-                </select>
-                <button>Search</button>
-            </div>
+
+            <!--検索機能-->
+            <form action="{{ route('movies.index') }}" method="GET">
+                <div class="search-container">
+                    <!-- id: 基本的な処理には関係ない。 name: コントローラー側のinput('name')に対応する。 value: その際に送るデータ。 -->
+                    <input type="text" id="keyword" name="keyword" placeholder="映画のタイトルを入力..."
+                        value="{{ request('keyword') }}" />
+                    <select name="is_showing" id="is_showing_select">
+                        <option value="">すべて</option>
+                        <option value="1" @selected(request('is_showing')=='1' )> 上映中 </option>
+                        <option value="0" @selected(request('is_showing')=='0' )> 上映予定 </option>
+                    </select>
+                    <button type="submit">Search</button>
+                </div>
+            </form>
+
+            {{ $movies->appends(request()->query())->links() }}
 
             @foreach ($movies as $movie)
             <div class=" movie-card">
