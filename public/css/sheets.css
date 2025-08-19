@@ -1,0 +1,45 @@
+/* テーブル全体をページの中央に配置するための設定 */
+body {
+    display: flex;
+    justify-content: center; /* 水平方向中央 */
+    align-items: center; /* 垂直方向中央 */
+    min-height: 100vh;
+    margin: 0;
+    font-family: sans-serif;
+    background-color: #f4f4f4;
+}
+
+/* 座席表テーブルの基本スタイル */
+.seating-chart {
+    border-collapse: separate; /* セルの境界線を分離させる */
+    border-spacing: 10px 15px; /* 水平・垂直方向のセルの間隔を指定 */
+    text-align: center;
+}
+
+/* スクリーン部分のスタイル */
+.screen {
+    background-color: #333;
+    color: white;
+    padding: 12px 0;
+    font-size: 1.2em;
+    letter-spacing: 0.3em; /* 文字間隔を広げる */
+    border-radius: 5px;
+}
+
+/* 各座席セルのスタイル */
+.seating-chart td {
+    width: 70px; /* 座席の幅を均等に */
+    height: 70px; /* 座席の高さを均等に */
+    background-color: #a7c7e7; /* 座席の色 */
+    border: 1px solid #77aadd;
+    border-radius: 10px; /* 座席の角を丸くする */
+    font-weight: bold;
+    vertical-align: middle; /* 文字を上下中央に配置 */
+    cursor: pointer; /* カーソルを乗せるとポインターに変わる */
+    transition: background-color 0.2s; /* 色が変わる際のアニメーション */
+}
+
+/* カーソルを乗せた時の座席の色 */
+.seating-chart td:hover {
+    background-color: #8db5e0;
+}

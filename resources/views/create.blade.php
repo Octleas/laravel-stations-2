@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 
 <head>
     <link rel="stylesheet" href="{{ asset('css/create.css') }}">

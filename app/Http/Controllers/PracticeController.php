@@ -35,6 +35,22 @@ class PracticeController extends Controller
         return view('movies', compact('movies'));
     }
 
+    public function detail($id)
+    {
+        $movie = Movie::find($id);
+        //$movie->schedules で取得できるデータは、Laravelのコレクションという便利なオブジェクト
+        //コレクションのメソッドでsortBy()というものがあり、データを照準に並び替えられる。
+        $schedules = $movie->schedules->sortBy('start_time');
+
+        return view('detail', compact('movie', 'schedules'));
+    }
+    
+    public function sheets()
+    {
+        $rows = DB::table('sheets')->select('row')->distinct()->orderBy('row', 'asc')->pluck('row');
+        return view('sheets', compact('rows'));
+    }
+
     public function admin()
     {
         $movies = Movie::with('genre')->get(); 
