@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Movie;
 use App\Models\Genre;
+use App\Models\Schedule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class PracticeController extends Controller
 {
@@ -44,18 +46,7 @@ class PracticeController extends Controller
 
         return view('detail', compact('movie', 'schedules'));
     }
-    
-    public function sheets()
-    {
-        $rows = DB::table('sheets')->select('row')->distinct()->orderBy('row', 'asc')->pluck('row');
-        return view('sheets', compact('rows'));
-    }
 
-    public function admin()
-    {
-        $movies = Movie::with('genre')->get(); 
-        return view('admin', ['movies' => $movies]);
-    }
 
     public function create()
     {
@@ -91,11 +82,9 @@ class PracticeController extends Controller
         return redirect()->route('admin.movies')->with('success', '映画が作成されました。');
     }
 
-
     public function edit($id)
     {
         $movie = Movie::find($id);
-
         return view('edit', ['movie' => $movie]);
     }
 
@@ -104,7 +93,7 @@ class PracticeController extends Controller
         $movie = Movie::findOrFail($id);
 
         $validatedData = $request->validate([
-            'title' => 'required|unique:movies,title', // DBの制約に合わせてmaxルールを追加するのが望ましい
+            'title' => 'required|unique:movies,title',
             'image_url' => 'required|active_url',
             'published_year' => 'required|integer',
             'genre' => 'required',
@@ -133,7 +122,9 @@ class PracticeController extends Controller
     {
         $movie = Movie::findOrFail($id);
         try {
-    
+            // 関連するスケジュールを削除
+            $movie->schedules()->delete();
+
             $title = $movie->title;
             $movie->delete();
     
@@ -141,12 +132,121 @@ class PracticeController extends Controller
                 ->route('admin.movies')
                 ->with('success', "映画を削除しました → {$title}");
     
-            } catch (\Throwable $e) {
-                \Log::error("映画の削除中にエラーが発生しました: " . $e->getMessage());
-                return redirect()
-                    ->back()
-                    ->with('error', '映画の削除中に予期せぬエラーが発生しました。')
-                    ->withInput();
-            }
+        } catch (\Throwable $e) {
+            \Log::error("映画の削除中にエラーが発生しました: " . $e->getMessage());
+            return redirect()
+                ->back()
+                ->with('error', '映画の削除中に予期せぬエラーが発生しました。');
+        }
+    }
+    
+    public function sheets()
+    {
+        $rows = DB::table('sheets')->select('row')->distinct()->orderBy('row', 'asc')->pluck('row');
+        return view('sheets', compact('rows'));
+    }
+
+    public function admin()
+    {
+        $movies = Movie::with('genre')->get(); 
+        return view('admin', ['movies' => $movies]);
+    }
+
+    public function adminMovieDetail($id)
+    {
+        $movie = Movie::find($id);
+        if (!$movie) {
+            abort(404);
+        }
+        $schedules = $movie->schedules->sortBy('start_time');
+        return view('adminMovieDetail', compact('movie', 'schedules'));
+    }
+
+    public function schedules()
+    {
+        $movies = Movie::with(['schedules' => function ($query) {
+            $query->orderBy('start_time'); // スケジュールを開始時刻でソート
+        }])->get();
+        return view('schedules', compact('movies'));
+    }
+
+    public function scheduleDetail($id)
+    {
+        $movie = Movie::find($id);
+        $schedules = $movie->schedules->sortBy('start_time');
+        return view('scheduleDetail', compact('movie', 'schedules'));
+    }
+
+    public function scheduleCreate($id)
+    {
+        $movie = Movie::find($id);
+        return view('scheduleCreate', compact('movie'));
+    }
+
+    public function scheduleStore(Request $request, $id)
+    {
+        $validatedData = $request->validate([
+            'movie_id' => 'required|integer|exists:movies,id',
+            'start_time_date' => 'required|date|date_format:Y-m-d',
+            'start_time_time' => 'required|date_format:H:i',
+            'end_time_date' => 'required|date|date_format:Y-m-d',
+            'end_time_time' => 'required|date_format:H:i',
+        ]);
+
+        $schedule = new Schedule();
+        $schedule->start_time = Carbon::parse($validatedData['start_time_date'] . ' ' . $validatedData['start_time_time']);
+        $schedule->end_time = Carbon::parse($validatedData['end_time_date'] . ' ' . $validatedData['end_time_time']);
+        $schedule->movie_id = $validatedData['movie_id'];
+        $schedule->save();
+
+        return redirect()->route('admin.schedules.detail', $id)->with('success', 'スケジュールを作成しました。');
+    }
+
+    public function scheduleEdit($id)
+    {
+        $schedule = Schedule::findOrFail($id);
+
+        // start_time と end_time を分割
+        $start_time_date = $schedule->start_time->format('Y-m-d'); // 日付部分
+        $start_time_time = $schedule->start_time->format('H:i');   // 時刻部分
+        $end_time_date = $schedule->end_time->format('Y-m-d');     // 日付部分
+        $end_time_time = $schedule->end_time->format('H:i');       // 時刻部分
+
+        return view('scheduleEdit', compact('schedule', 'start_time_date', 'start_time_time', 'end_time_date', 'end_time_time'));
+    }
+
+    public function scheduleUpdate(Request $request, $id)
+    {
+        $schedule = Schedule::findOrFail($id);
+
+        $validatedData = $request->validate([
+            'movie_id' => 'sometimes|integer|exists:movies,id',
+            'start_time_date' => 'required|date|date_format:Y-m-d',
+            'start_time_time' => 'required|date_format:H:i',
+            'end_time_date' => 'required|date|date_format:Y-m-d',
+            'end_time_time' => 'required|date_format:H:i',
+        ]);
+    
+        $schedule->start_time = Carbon::parse($validatedData['start_time_date'] . ' ' . $validatedData['start_time_time']);
+        $schedule->end_time = Carbon::parse($validatedData['end_time_date'] . ' ' . $validatedData['end_time_time']);
+    
+        // movie_id を設定（バリデーション済みの値を使用）
+        if (isset($validatedData['movie_id'])) {
+            $schedule->movie_id = $validatedData['movie_id'];
+        }
+    
+        $schedule->save();
+    
+        return redirect()->route('admin.schedules.detail', $schedule->movie_id)->with('success', 'スケジュールを更新しました。');
+    }
+
+    public function scheduleDestroy($id)
+    {
+        $schedule = Schedule::findOrFail($id);
+        $movie_id = $schedule->movie_id;
+        $schedule->delete();
+        return redirect()
+                ->route('admin.schedules.detail', ['id' => $movie_id])
+                ->with('success', "スケジュールを削除しました");
     }
 }

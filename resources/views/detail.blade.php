@@ -24,11 +24,11 @@
 
     <h1>上映スケジュール</h1>
     @foreach($schedules as $schedule)
-    <div class="schedule-item">
+    <button class="schedule-item" onclick="location.href='{{ route('admin.schedules.detail', $movie->id) }}'">
         {{ \Carbon\Carbon::parse($schedule->start_time)->format('H:i') }} ~
         {{ \Carbon\Carbon::parse($schedule->end_time)->format('H:i') }}
         <span style="color: #7f8c8d; font-size: 0.9em; margin-left: 10px;">スクリーンx</span>
-    </div>
+    </button>
     @endforeach
 
 </body>

@@ -7,12 +7,27 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>AdminMenu</title>
     <link rel="stylesheet" href="{{ asset('css/admin.css') }}">
+    <style>
+        .movie-row:hover {
+            background-color: #f5f5f5;
+            transition: background-color 0.2s ease;
+        }
+        .movie-row {
+            cursor: pointer;
+        }
+    </style>
 </head>
 
 <body>
     <div class="admin-container">
 
         <div class="admin-actions">
+            <button class="btn-create" onclick="location.href='{{ route('movies.index') }}'">
+                作品一覧画面
+            </button>
+            <button class="btn-create" onclick="location.href='{{ route('admin.schedules') }}'">
+                スケジュールを管理する
+            </button>
             <button class="btn-create" onclick="location.href='{{ route('admin.movies.create') }}'">
                 映画を登録する
             </button>
@@ -53,7 +68,7 @@
                 </thead>
                 <tbody>
                     @foreach ($movies as $movie)
-                    <tr>
+                    <tr class="movie-row" onclick="location.href='{{ route('admin.movies.detail', $movie->id) }}'" style="cursor: pointer;">
                         <td>{{ $movie->title }}</td>
                         <td><img src="{{ $movie->image_url }}" alt="{{ $movie->title}}" class="movie-image"></td>
                         <td>{{ $movie->published_year }}</td>
@@ -64,13 +79,13 @@
                         <td>{{ $movie->updated_at }}</td>
                         <th>
                             <button class="btn-edit"
-                                onclick="location.href='{{ route('admin.movies.edit', $movie->id) }}'">
+                                onclick="event.stopPropagation(); location.href='{{ route('admin.movies.edit', $movie->id) }}'">
                                 編集
                             </button>
                         </th>
                         <th>
                             <form action="{{ route('admin.movies.destroy', $movie->id) }}" method="POST"
-                                style="display:inline;">
+                                style="display:inline;" onclick="event.stopPropagation();">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn-rmv">削除</button>

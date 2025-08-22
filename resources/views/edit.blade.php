@@ -23,7 +23,7 @@
 
         <form action="{{ route('admin.movies.update', $movie->id) }}" method="POST">
             @csrf
-            @method('put')
+            @method('PATCH')
             <div class="form-title">
                 <label for="title">映画のタイトル</label>
                 <input type="text" id="title" name="title" value="{{ old('title', $movie->title) }}" />
