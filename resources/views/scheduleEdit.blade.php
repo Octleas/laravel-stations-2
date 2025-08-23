@@ -33,12 +33,10 @@
             <input type="time" id="end_time_time" name="end_time_time"
                 value="{{ old('end_time_time', $end_time_time) }}" />
         </div>
-        <!--
         <div>
             <label for="screen_number">スクリーン </label>
             <input type="text" id="screen_number" name="screen_number" value="{{old('screen_number')}}" />
         </div>
-        -->
         <div>
             <button type="submit">更新する</button>
         </div>

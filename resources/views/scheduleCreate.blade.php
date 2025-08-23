@@ -10,15 +10,28 @@
 </head>
 
 <body>
+
+    @if ($errors->any())
+    <div>
+        <ul>
+            @foreach ($errors->all() as $error)
+            <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+    @endif
+
     <form action="{{ route('admin.schedules.store', ['id' => $movie->id]) }}" method="POST">
         @csrf
+        <input type="hidden" name="movie_id" value="{{ $movie->id }}">
+
         <div>
             <label for="start_time_date">開演日程 </label>
             <input type="date" id="start_time_date" name="start_time_date" value="{{old('start_time_date')}}" />
         </div>
         <div>
             <label for="start_time_time">開演時刻 </label>
-            <input type="time" id="tart_time_time" name="start_time_time" value="{{old('start_time_time')}}" />
+            <input type="time" id="start_time_time" name="start_time_time" value="{{old('start_time_time')}}" />
         </div>
         <div>
             <label for="end_time_date">終演日程 </label>
@@ -35,6 +48,6 @@
         </div>
         -->
         <div>
-            <button type="submit">映画を登録</button>
+            <button type="submit">スケジュールを登録</button>
         </div>
     </form>

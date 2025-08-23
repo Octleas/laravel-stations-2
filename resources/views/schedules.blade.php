@@ -12,7 +12,8 @@
 <body>
     <h1>映画スケジュール一覧</h1>
     @foreach($movies as $movie)
-    <h2 class="movie-title">({{ $movie->id }}) {{ $movie->title }}</h2>
+    <h2 onclick="location.href='{{ route('admin.schedules.detail', $movie->id) }}'" class="movie-title">
+        ({{ $movie->id }}) {{ $movie->title }}</h2>
     @if($movie->schedules->isNotEmpty())
     @foreach($movie->schedules as $schedule)
     <button class="schedule-item" onclick="location.href='{{ route('admin.schedules.detail', $movie->id) }}'">
