@@ -185,6 +185,7 @@ class PracticeController extends Controller
 
     public function scheduleStore(Request $request, $id)
     {
+        // 基本的なバリデーション（日付比較は除く）
         $validatedData = $request->validate([
             'movie_id' => 'required|integer|exists:movies,id',
             'start_time_date' => 'required|date|date_format:Y-m-d',
@@ -193,9 +194,43 @@ class PracticeController extends Controller
             'end_time_time' => 'required|date_format:H:i',
         ]);
 
+        // 開始日時と終了日時を結合して Carbon インスタンスを作成
+        $startDateTime = Carbon::parse($validatedData['start_time_date'] . ' ' . $validatedData['start_time_time']);
+        $endDateTime = Carbon::parse($validatedData['end_time_date'] . ' ' . $validatedData['end_time_time']);
+
+        // カスタムバリデーション
+        $errors = [];
+
+        // 1. 開始日付が終了日付より後の場合
+        if ($validatedData['start_time_date'] > $validatedData['end_time_date']) {
+            $errors['start_time_date'] = ['開始日付は終了日付以前である必要があります。'];
+            $errors['end_time_date'] = ['終了日付は開始日付以降である必要があります。'];
+        }
+
+        // 2. 同じ日付で開始時刻が終了時刻より後の場合、または同一の場合
+        if ($validatedData['start_time_date'] === $validatedData['end_time_date']) {
+            if ($validatedData['start_time_time'] >= $validatedData['end_time_time']) {
+                $errors['start_time_time'] = ['開始時刻は終了時刻より前である必要があります。'];
+                $errors['end_time_time'] = ['終了時刻は開始時刻より後である必要があります。'];
+            }
+        }
+
+        // 3. 開始日時と終了日時の差を計算（5分超チェック）
+        $differenceInMinutes = $startDateTime->diffInMinutes($endDateTime, false);
+        if ($differenceInMinutes <= 5) {
+            $errors['start_time_time'] = ['開始時刻と終了時刻の差は5分超である必要があります。'];
+            $errors['end_time_time'] = ['終了日時は開始日時より5分超後である必要があります。'];
+        }
+
+        // エラーがある場合はリダイレクト
+        if (!empty($errors)) {
+            return back()->withErrors($errors)->withInput();
+        }
+
+        // スケジュールを保存
         $schedule = new Schedule();
-        $schedule->start_time = Carbon::parse($validatedData['start_time_date'] . ' ' . $validatedData['start_time_time']);
-        $schedule->end_time = Carbon::parse($validatedData['end_time_date'] . ' ' . $validatedData['end_time_time']);
+        $schedule->start_time = $startDateTime;
+        $schedule->end_time = $endDateTime;
         $schedule->movie_id = $validatedData['movie_id'];
         $schedule->save();
 
@@ -219,6 +254,7 @@ class PracticeController extends Controller
     {
         $schedule = Schedule::findOrFail($id);
 
+        // 基本的なバリデーション（日付比較は除く）
         $validatedData = $request->validate([
             'movie_id' => 'sometimes|integer|exists:movies,id',
             'start_time_date' => 'required|date|date_format:Y-m-d',
@@ -226,17 +262,51 @@ class PracticeController extends Controller
             'end_time_date' => 'required|date|date_format:Y-m-d',
             'end_time_time' => 'required|date_format:H:i',
         ]);
-    
-        $schedule->start_time = Carbon::parse($validatedData['start_time_date'] . ' ' . $validatedData['start_time_time']);
-        $schedule->end_time = Carbon::parse($validatedData['end_time_date'] . ' ' . $validatedData['end_time_time']);
-    
+
+        // 開始日時と終了日時を結合して Carbon インスタンスを作成
+        $startDateTime = Carbon::parse($validatedData['start_time_date'] . ' ' . $validatedData['start_time_time']);
+        $endDateTime = Carbon::parse($validatedData['end_time_date'] . ' ' . $validatedData['end_time_time']);
+
+        // カスタムバリデーション
+        $errors = [];
+
+        // 1. 開始日付が終了日付より後の場合
+        if ($validatedData['start_time_date'] > $validatedData['end_time_date']) {
+            $errors['start_time_date'] = ['開始日付は終了日付以前である必要があります。'];
+            $errors['end_time_date'] = ['終了日付は開始日付以降である必要があります。'];
+        }
+
+        // 2. 同じ日付で開始時刻が終了時刻より後の場合、または同一の場合
+        if ($validatedData['start_time_date'] === $validatedData['end_time_date']) {
+            if ($validatedData['start_time_time'] >= $validatedData['end_time_time']) {
+                $errors['start_time_time'] = ['開始時刻は終了時刻より前である必要があります。'];
+                $errors['end_time_time'] = ['終了時刻は開始時刻より後である必要があります。'];
+            }
+        }
+
+        // 3. 開始日時と終了日時の差を計算（5分超チェック）
+        $differenceInMinutes = $startDateTime->diffInMinutes($endDateTime, false);
+        if ($differenceInMinutes <= 5) {
+            $errors['start_time_time'] = ['開始時刻と終了時刻の差は5分超である必要があります。'];
+            $errors['end_time_time'] = ['終了日時は開始日時より5分超後である必要があります。'];
+        }
+
+        // エラーがある場合はリダイレクト
+        if (!empty($errors)) {
+            return back()->withErrors($errors)->withInput();
+        }
+
+        // スケジュールを更新
+        $schedule->start_time = $startDateTime;
+        $schedule->end_time = $endDateTime;
+
         // movie_id を設定（バリデーション済みの値を使用）
         if (isset($validatedData['movie_id'])) {
             $schedule->movie_id = $validatedData['movie_id'];
         }
-    
+
         $schedule->save();
-    
+
         return redirect()->route('admin.schedules.detail', $schedule->movie_id)->with('success', 'スケジュールを更新しました。');
     }
 
