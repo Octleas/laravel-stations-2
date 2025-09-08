@@ -19,7 +19,6 @@
         <h1 class="page-title">映画一覧</h1>
 
         <div>
-
             <!--検索機能-->
             <form action="{{ route('movies.index') }}" method="GET">
                 <div class="search-container">

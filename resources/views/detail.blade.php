@@ -11,6 +11,27 @@
 
 <body>
     <h1>映画詳細</h1>
+    @if (session('success'))
+    <div class="alert alert-success">
+        {{ session('success') }}
+    </div>
+    @endif
+
+    @if (session('error'))
+    <div class="alert alert-danger">
+        {{ session('error') }}
+    </div>
+    @endif
+
+    @if ($errors->any())
+        <div class="alert alert-danger">
+            <ul>
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
     <h2 class="movie-title">{{ $movie->title }}</h2>
     <div class="movie-image-wrapper">
         <img src="{{ $movie->image_url }}" alt="{{ $movie->title }}" class="movie-image">
@@ -24,11 +45,13 @@
 
     <h1>上映スケジュール</h1>
     @foreach($schedules as $schedule)
-    <button class="schedule-item" onclick="location.href='{{ route('admin.schedules.detail', $movie->id) }}'">
+    <div class="schedule-item">
         {{ \Carbon\Carbon::parse($schedule->start_time)->format('H:i') }} ~
         {{ \Carbon\Carbon::parse($schedule->end_time)->format('H:i') }}
-        <span style="color: #7f8c8d; font-size: 0.9em; margin-left: 10px;">スクリーンx</span>
-    </button>
+        <span style="color: #7f8c8d; font-size: 0.9em; margin-left: 10px;">スクリーンx　</span>
+        <button
+            onclick="location.href='{{ route('sheets', ['movie_id' => $movie->id, 'schedule_id' => $schedule->id]) }}?date={{ $date }}'">座席を予約する</button>
+    </div>
     @endforeach
 
 </body>

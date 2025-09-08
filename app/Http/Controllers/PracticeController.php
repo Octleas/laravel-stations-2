@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\Movie;
 use App\Models\Genre;
 use App\Models\Schedule;
+use App\Models\Reservation;
+use App\Models\Sheet;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
@@ -39,14 +41,20 @@ class PracticeController extends Controller
 
     public function detail($id)
     {
-        $movie = Movie::find($id);
-        //$movie->schedules で取得できるデータは、Laravelのコレクションという便利なオブジェクト
-        //コレクションのメソッドでsortBy()というものがあり、データを照準に並び替えられる。
-        $schedules = $movie->schedules->sortBy('start_time');
+        $movie = Movie::findOrFail($id); // 映画を取得
+        $schedules = $movie->schedules->sortBy('start_time'); // スケジュールを取得
 
-        return view('detail', compact('movie', 'schedules'));
+        // スケジュールが存在する場合、最初のスケジュールの日付を取得
+        $date = $schedules->first() ? $schedules->first()->start_time->format('Y-m-d') : null;
+
+        return view('detail', compact('movie', 'schedules', 'date'));
     }
 
+    public function sheetsList()
+    {
+        $sheets = Sheet::all();
+        return view('sheets', compact('sheets'));
+    }
 
     public function create()
     {
@@ -93,7 +101,7 @@ class PracticeController extends Controller
         $movie = Movie::findOrFail($id);
 
         $validatedData = $request->validate([
-            'title' => 'required|unique:movies,title',
+            'title' => 'required|unique:movies,title,' . $id,
             'image_url' => 'required|active_url',
             'published_year' => 'required|integer',
             'genre' => 'required',
@@ -140,10 +148,173 @@ class PracticeController extends Controller
         }
     }
     
-    public function sheets()
+    public function sheets(Request $request, $movieId, $scheduleId)
     {
-        $rows = DB::table('sheets')->select('row')->distinct()->orderBy('row', 'asc')->pluck('row');
-        return view('sheets', compact('rows'));
+        // dateパラメーターが必要
+        if (!$request->has('date') || empty($request->input('date'))) {
+            abort(400, 'date parameter is required');
+        }
+
+        $date = $request->input('date');
+
+        // 全座席を取得
+        $allSheets = Sheet::orderBy('row')->orderBy('column')->get();
+
+        // 指定された日付とスケジュールで予約済みの座席IDを取得（1回のクエリ）
+        $reservedSheetIds = Reservation::where('schedule_id', $scheduleId)
+            ->whereDate('date', $date)
+            ->where('is_canceled', false)
+            ->pluck('sheet_id')
+            ->toArray();
+
+        // 座席を行ごとにグループ化し、予約状況を含める
+        $seatsByRow = [];
+        foreach ($allSheets as $sheet) {
+            $isReserved = in_array($sheet->id, $reservedSheetIds);
+            $seatsByRow[strtoupper($sheet->row)][] = [
+                'id' => $sheet->id,
+                'column' => $sheet->column,
+                'is_reserved' => $isReserved,
+                'seat_code' => strtoupper($sheet->row) . '-' . $sheet->column
+            ];
+        }
+
+        return view('sheets', [
+            'movieId' => $movieId,
+            'scheduleId' => $scheduleId,
+            'date' => $date,
+            'seatsByRow' => $seatsByRow,
+        ]);
+    }
+
+    public function reserve(Request $request)
+    {
+        // dateとsheetIdパラメーターが必要
+        if (!$request->has('date') || empty($request->input('date'))) {
+            abort(400, 'date parameter is required');
+        }
+        
+        if (!$request->has('sheetId') || empty($request->input('sheetId'))) {
+            abort(400, 'sheetId parameter is required');
+        }
+
+        $movieId = $request->movie_id;
+        $scheduleId = $request->schedule_id;
+        $sheetId = $request->sheetId;
+        $date = $request->date;
+
+        // 指定された座席が予約可能かチェック
+        if (!is_numeric($sheetId)) {
+            // 'A-1' 形式の場合、実際のIDを取得
+            [$row, $column] = explode('-', $sheetId);
+            $actualSheetId = DB::table('sheets')
+                ->where('row', strtolower($row))
+                ->where('column', $column)
+                ->value('id');
+        } else {
+            $actualSheetId = $sheetId;
+        }
+
+        // この座席が既に予約されているかチェック
+        // 日付文字列を正規化（時刻部分を除去）
+        $checkDate = \Carbon\Carbon::parse($date)->format('Y-m-d');
+        
+        $isReserved = Reservation::where('schedule_id', $scheduleId)
+            ->where('sheet_id', $actualSheetId)
+            ->whereDate('date', $checkDate)
+            ->where('is_canceled', false)
+            ->exists();
+
+        if ($isReserved) {
+            abort(400, 'Selected seat is already reserved');
+        }
+    
+        return view('reserve', [
+            'movieId' => $movieId,
+            'scheduleId' => $scheduleId,
+            'sheetId' => $sheetId,
+            'date' => $date,
+        ]);
+    }
+    
+    public function storeReservation(Request $request)
+    {
+        $validatedData = $request->validate([
+            'movie_id' => 'sometimes|exists:movies,id',
+            'schedule_id' => 'required|exists:schedules,id',
+            'sheet_id' => [
+                'required',
+                function ($attribute, $value, $fail) {
+                    // sheet_idが数値の場合（直接のID）
+                    if (is_numeric($value)) {
+                        $exists = DB::table('sheets')->where('id', $value)->exists();
+                        if (!$exists) {
+                            $fail('The selected sheet id is invalid.');
+                        }
+                        return;
+                    }
+                    
+                    // sheet_idが文字列の場合（例: 'A-1'）
+                    if (strpos($value, '-') !== false) {
+                        [$row, $column] = explode('-', $value);
+                        $exists = DB::table('sheets')
+                            ->where('row', strtolower($row))
+                            ->where('column', $column)
+                            ->exists();
+                        if (!$exists) {
+                            $fail('The selected sheet id is invalid.');
+                        }
+                        return;
+                    }
+                    
+                    $fail('The selected sheet id is invalid.');
+                },
+            ],
+            'date' => 'required|date',
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+        ]);
+
+        // sheet_idから実際のIDを取得
+        $sheetId = $validatedData['sheet_id'];
+        if (!is_numeric($sheetId)) {
+            [$row, $column] = explode('-', $sheetId);
+            $sheetId = DB::table('sheets')
+                ->where('row', strtolower($row))
+                ->where('column', $column)
+                ->value('id');
+        }
+
+        // 重複チェック
+        $exists = Reservation::where('schedule_id', $validatedData['schedule_id'])
+            ->where('sheet_id', $sheetId)
+            ->whereDate('date', $validatedData['date'])
+            ->where('is_canceled', false)
+            ->exists();
+
+        if ($exists) {
+            if (isset($validatedData['movie_id'])) {
+                return redirect()->route('movies.detail', ['id' => $validatedData['movie_id']])->withErrors(['reservation' => 'この座席は既に予約されています。別の座席をお選びください。'])->withInput();
+            } else {
+                return redirect()->back()->withErrors(['reservation' => 'この座席は既に予約されています。別の座席をお選びください。'])->withInput();
+            }
+        }
+
+        // データ保存処理
+        Reservation::create([
+            'date' => $validatedData['date'],
+            'schedule_id' => $validatedData['schedule_id'],
+            'sheet_id' => $sheetId,
+            'email' => $validatedData['email'],
+            'name' => $validatedData['name'],
+            'is_canceled' => false,
+        ]);
+
+        if (isset($validatedData['movie_id'])) {
+            return redirect()->route('movies.detail', ['id' => $validatedData['movie_id']])->with('success', '予約が完了しました！');
+        } else {
+            return redirect()->back()->with('success', '予約が完了しました！');
+        }
     }
 
     public function admin()

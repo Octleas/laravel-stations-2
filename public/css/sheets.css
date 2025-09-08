@@ -1,12 +1,28 @@
 /* テーブル全体をページの中央に配置するための設定 */
 body {
     display: flex;
+    flex-direction: column;
     justify-content: center; /* 水平方向中央 */
     align-items: center; /* 垂直方向中央 */
     min-height: 100vh;
     margin: 0;
     font-family: sans-serif;
     background-color: #f4f4f4;
+}
+
+/* 凡例スタイル */
+.legend {
+    margin-bottom: 20px;
+    display: flex;
+    gap: 20px;
+    font-size: 14px;
+}
+
+.available-seat-legend,
+.reserved-seat-legend {
+    display: flex;
+    align-items: center;
+    gap: 5px;
 }
 
 /* 座席表テーブルの基本スタイル */
@@ -26,20 +42,60 @@ body {
     border-radius: 5px;
 }
 
-/* 各座席セルのスタイル */
+/* 基本座席セルのスタイル */
 .seating-chart td {
     width: 70px; /* 座席の幅を均等に */
     height: 70px; /* 座席の高さを均等に */
-    background-color: #a7c7e7; /* 座席の色 */
     border: 1px solid #77aadd;
     border-radius: 10px; /* 座席の角を丸くする */
     font-weight: bold;
     vertical-align: middle; /* 文字を上下中央に配置 */
-    cursor: pointer; /* カーソルを乗せるとポインターに変わる */
     transition: background-color 0.2s; /* 色が変わる際のアニメーション */
 }
 
-/* カーソルを乗せた時の座席の色 */
-.seating-chart td:hover {
+/* 予約可能な座席 */
+.available-seat {
+    background-color: #a7c7e7; /* 座席の色 */
+    cursor: pointer; /* カーソルを乗せるとポインターに変わる */
+}
+
+.available-seat:hover {
     background-color: #8db5e0;
+}
+
+/* 予約済みの座席 */
+.reserved-seat {
+    background-color: #d3d3d3; /* グレー */
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.reserved-seat .seat-code {
+    color: #666;
+    text-decoration: none;
+}
+
+/* 座席リンクのスタイル */
+.seat-link {
+    display: block;
+    width: 100%;
+    height: 100%;
+    color: #333;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.seat-link:hover {
+    color: #000;
+}
+
+/* 座席コード（リンクなし）のスタイル */
+.seat-code {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
 }

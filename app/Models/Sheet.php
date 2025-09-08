@@ -8,4 +8,6 @@ use Illuminate\Database\Eloquent\Model;
 class Sheet extends Model
 {
     use HasFactory;
+
+    protected $fillable = ['row', 'column'];
 }

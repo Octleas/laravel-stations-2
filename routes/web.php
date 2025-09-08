@@ -8,6 +8,12 @@ use App\Http\Controllers\PracticeController;
 Route::get('/movies', [PracticeController::class, 'index'])->name('movies.index');
 Route::get('/movies/{id}',[PracticeController::class, 'detail'])->name('movies.detail');
 
+//座席関係
+Route::get('/sheets', [PracticeController::class, 'sheetsList'])->name('sheets.list');
+Route::get('/movies/{movie_id}/schedules/{schedule_id}/sheets', [PracticeController::class, 'sheets'])->name('sheets');
+Route::get('/movies/{movie_id}/schedules/{schedule_id}/reservations/create', [PracticeController::class, 'reserve'])->name('sheets.reserve');
+Route::post('/reservations/store', [PracticeController::class, 'storeReservation'])->name('reservations.store');
+
 //映画管理関係(Route::resource('admin/movies', MovieController::class);)
 Route::get('/admin/movies', [PracticeController::class, 'admin'])->name('admin.movies'); // 管理者用のルート
 Route::get('/admin/movies/create', [PracticeController::class, 'create'])->name('admin.movies.create'); //映画登録フォームのルート
@@ -17,8 +23,6 @@ Route::get('/admin/movies/{id}/edit', [PracticeController::class, 'edit'])->name
 Route::match(['put', 'patch'], '/admin/movies/{id}/update', [PracticeController::class, 'update'])->name('admin.movies.update');
 Route::delete('/admin/movies/{id}/destroy', [PracticeController::class, 'destroy'])->name('admin.movies.destroy'); // 映画削除
 
-//座席関係
-Route::get('/sheets', [PracticeController::class, 'sheets'])->name('movies.sheet');
 
 //スケジュール管理関係
 Route::get('/admin/schedules', [PracticeController::class, 'schedules'])->name('admin.schedules'); //映画スケジュール一覧
